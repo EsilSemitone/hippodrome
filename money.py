@@ -1,26 +1,36 @@
-﻿from tkinter import *
+﻿from tkinter import Label
 from tkinter import messagebox
 
 class Money():
 
-    def __init__(self, path: str, name):
+    def __init__(self, name):
         self.name = name
-        self.money = 0
-        self.path = path
+        self.money = self.load()
+        #Проверка на кэш, если нет предупреждение
+        assert self.money > 0 , self.error() 
+        #Удоли
+        print(f"Money {self.money}")
 
-    def load(self):
+        self.label = Label(text=f"Осталось {self.money} рублей", bg="#4a898a", font="arial 16")
+        self.label.place(x=20, y=600)
+
+    def load(self) -> int:
         try:
-            with open(self.path, "r") as f:
-                self.money = int(f.read())
+            with open("saves\\money.dat", "r") as f:
+                return int(f.read())
+            
         except:
-            with open(self.path, 'w') as f:
-                self.money = 10000
+            with open("saves\\money.dat", 'w') as f:
                 f.write('10000')
-
-    def save(self):
+                return 10000
+            
+    def save(self) -> None:
         try:
-            with open(self.path, 'w') as f:
+            with open("saves\\money.dat", 'w') as f:
                 f.write(str(self.money))
         except:
-            messagebox.showinfo('Ошибка', f'Не получается сохранить {Money}')
-        
+            messagebox.showinfo('Ошибка', f'Не получается сохранить {self.name}')
+
+    def error(self) -> None:
+        messagebox.showerror("Внимание!", "У вас недостаточно денег!")
+        quit()

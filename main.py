@@ -1,11 +1,8 @@
-﻿from money import Money
-from horses import Horse
-from tkinter import *
-from windows import GameWindow
+﻿from windows import *
 
 def main():
-    Game = GameWindow()
-    Game.root.mainloop()
+    start = MenuGameWindow()
+    start.root.mainloop()
 
 if __name__ == '__main__':
     main()
