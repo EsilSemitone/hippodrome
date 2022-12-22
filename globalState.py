@@ -77,4 +77,5 @@ class Time(Weather):
 if __name__ == "__main__":
     one = Weather()
     two = Time()
+    #Тест
     print(one.get_state(), two.get_state())
