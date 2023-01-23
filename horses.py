@@ -4,6 +4,7 @@ from tkinter import messagebox
 from os import listdir
 
 from Theme import Theme
+from globalState import EventRate
 
 class Horse():
     states = {
@@ -29,6 +30,8 @@ class Horse():
         self.factor = round(uniform(1, 5), 2) #Коофицент 
 
         self.win = None #Эта лощадь победитель?
+        #Частота событий
+        self.event = EventRate()
 
         self.horseImage = PhotoImage(file=photoFile) 
         #Скачивал рисунки я не с учебника, разрешение у них разное
@@ -80,7 +83,7 @@ class Horse():
 
     def problemHorse(self, weather, time):
 
-        if (randint(0, 250 +  weather + time + int(list(self.states.keys())[list(self.states.values()).index(self.state)]))) < 1:
+        if (randint(0, 250 +  weather + time + int(list(self.states.keys())[list(self.states.values()).index(self.state)])) + self.event.impact)  < 1:
             print("Внимание!")
 
             if randint(1, 3) == 1:

@@ -307,11 +307,18 @@ class Settings(GameWindow):
         self.lab_theme = Label(text="Тема", font="arial 15", bg=self.th.bc)
         self.lab_theme.place(x=20, y=110)
 
+        self.event_lab = Label(text='Частота событий', font='arial 15', bg=self.th.bc)
+        self.event_lab.place(x=20, y=200)
+        self.event_var = StringVar
+
         self.theme_var = StringVar()
         self.theme = ttk.Combobox(self.root, state='readonly', values=self.th.get_theme(), textvariable=self.theme_var, width=30)
         self.theme.place(x=20, y=150)
         self.theme.set(self.th.theme)
         self.theme.bind("<<ComboboxSelected>>", self.theme_select)
+
+        
+
     
     def theme_select(self, *args) -> None:
         self.theme_update(self.theme_var.get())
@@ -321,8 +328,10 @@ class Settings(GameWindow):
         self.lab.place(x=410, y=20)
         self.lab_theme = Label(text="Тема", font="arial 15", bg=self.th.bc)
         self.lab_theme.place(x=20, y=110)
+        self.event_lab = Label(text='Частота событий', font='arial 15', bg=self.th.bc)
+        self.event_lab.place(x=20, y=200)
 
-        print(self.th.bc)
+        
 
     def theme_update(self, var) -> None:
         print(f'Выбрана тема {var}')

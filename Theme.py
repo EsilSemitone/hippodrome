@@ -14,8 +14,7 @@ class Theme():
                 self.bc = json_file[self.theme]['bc']
                 self.back_text = json_file[self.theme]['back_text']
                 self.bc_text_field = json_file[self.theme]['bc_text_field']
-
-        except (json.JSONDecodeError, FileNotFoundError):
+        except (FileNotFoundError, json.JSONDecodeError):
             with open("saves\\config.json", 'w') as f:
                 json.dump({
             "theme": 'Green',
@@ -35,6 +34,14 @@ class Theme():
                 'back_text': '#948788',
                 'bc_text_field': '#5e5354'},
             }, f, indent=2)
+        finally:
+            with open("saves\\config.json", 'r') as f:
+                json_file = json.load(f)
+                self.theme = json_file['theme']
+                self.button = json_file[self.theme]['button']
+                self.bc = json_file[self.theme]['bc']
+                self.back_text = json_file[self.theme]['back_text']
+                self.bc_text_field = json_file[self.theme]['bc_text_field']
 
     def select_theme(self, theme : str) -> None:
         #Меняем тему

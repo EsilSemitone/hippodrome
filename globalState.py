@@ -1,5 +1,6 @@
 ﻿from random import randint, choice
-
+import json as js
+from textwrap import indent
 class Weather(object):
 
     states = {
@@ -73,9 +74,36 @@ class Time(Weather):
         elif self.state == self.states[4]:
             return choice([18, 15, 4])
 
-#Удоли
+
+class EventRate():
+
+    _events = ("Often", "Normal", "Rarely")
+    def __init__(self, ev_rate = _events[1]) -> None:
+        try:
+            with open('saves\\event.json', 'r') as f:
+                json_file = js.load(f)
+                self.ev_rate = json_file['rate']
+                self.impact = json_file[self.ev_rate]
+
+        except (FileNotFoundError, js.JSONDecodeError):
+            with open('saves\\event.json', 'w') as f:
+                js.dump({
+                    'rate': "Normal",
+                    'Often': -40,
+                    'Normal': 0,
+                    "Rarely": 40
+                    }, f, indent=2)
+        finally:
+            with open('saves\\event.json', 'r') as f:
+                json_file = js.load(f)
+                self.ev_rate = json_file['rate']
+                self.impact = json_file[self.ev_rate]
+
 if __name__ == "__main__":
-    one = Weather()
-    two = Time()
-    #Тест
-    print(one.get_state(), two.get_state())
+    with open('saves\\event.json', 'w') as f:
+                js.dump({
+                    'rate': "Normal",
+                    'Often': -40,
+                    'Normal': 0,
+                    "Rarely": 40
+                    }, f, indent=2)
