@@ -2,11 +2,11 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-import json
 
 from horses import Horse, HorseLabel
 from money import Money
 from globalState import Weather, Time
+from Theme import Theme
 
 class GameWindow():
     
@@ -20,9 +20,11 @@ class GameWindow():
     root.iconphoto(True, PhotoImage(file=iconPhoto))
     root.geometry(f"{WIDTH}x{HEIGTH}+{POS_X}+{POS_Y}")
     root.resizable(False, False)
-    root.config(bg="#4a898a")
+    
 
     def __init__(self):
+        self.theme = Theme()
+        self.root.config(bg=self.theme.bc)
         self.roadImage = PhotoImage(file="textures\\other\\road.png")
         self.road = Label(self.root, image=self.roadImage)
         self.road.place(x=0, y=17)
@@ -36,17 +38,17 @@ class GameWindow():
         #баблишко
         self.money = Money("Рублей")
         #Кнопки
-        self.startButton = Button(text='Старт', font="arial 18", width=30, state="disabled", bg="#37AA37", fg='#FFFFFF', bd=3, command=self.Start)
+        self.startButton = Button(text='Старт', font="arial 18", width=30, state="disabled", bg=self.theme.button, fg='#FFFFFF', bd=3, command=self.Start)
         self.startButton.place(x=20, y=370)
 
-        self.settingButton = Button(text="Настройки", font="arial 18", width=15, bg="#37AA37", fg='#FFFFFF', bd=3, command=self.goSettings)
+        self.settingButton = Button(text="Настройки", font="arial 18", width=15, bg=self.theme.button, fg='#FFFFFF', bd=3, command=self.goSettings)
         self.settingButton.place(x=510, y=370)
         self.settingImage = PhotoImage(file="textures\\buttons\\settings.png")
         self.settingImage = self.settingImage.subsample(12, 12)
         self.settingIco = Label(self.root, image=self.settingImage)
         self.settingIco.place(x=455, y=370)
 
-        self.shopButton = Button(text="Магазин", font="arial 18", width=15, bg="#37AA37", fg='#FFFFFF', bd=3, command=self.goMall)
+        self.shopButton = Button(text="Магазин", font="arial 18", width=15, bg=self.theme.button, fg='#FFFFFF', bd=3, command=self.goMall)
         self.shopButton.place(x=795, y=370)
         self.shopImage = PhotoImage(file="textures\\buttons\\shop1.png")
         self.shopImage = self.shopImage.subsample(12, 12)
@@ -83,7 +85,7 @@ class GameWindow():
         self.box03.place(x=280, y=510)
         self.box04.place(x=280, y=540)
 
-        self.textInfo = Text(width=70, height=10, wrap=WORD, bg="#314545", fg='#FFFFFF')
+        self.textInfo = Text(width=70, height=10, wrap=WORD, bg=self.theme.bc_text_field, fg='#FFFFFF')
         self.textInfo.place(x=430, y=450)
 
         self.scroll = Scrollbar(command=self.textInfo.yview, width=20, bg="#314545")
@@ -98,6 +100,7 @@ class GameWindow():
     
 
     def setText(self) -> None:
+        '''установка информациив чат'''
         self.text = f"Сейчас на улице {self.time_set.get_state()}, {self.weather.get_state()}." + '\n'
         self.textInfo.insert(INSERT, self.text  + '\n')
         self.textInfo.insert(INSERT, f'{self.Horse01.name}, {self.Horse01.state} {self.Horse01.factor}:1' + '\n')
@@ -107,8 +110,8 @@ class GameWindow():
         #Смотреть в конец
         self.textInfo.see(END)
 
-    #функция очищающая окно, спасибо Илье, подсмотрел в головоломке!
     def Kill(self) -> None:
+        #функция очищающая окно, спасибо Илье, подсмотрел в головоломке!
         for self.child in self.root.winfo_children():
             self.child.destroy()
       
@@ -177,8 +180,8 @@ class GameWindow():
 
         if res != None:
             if self.lst[res - 1][0] > 0:
-
-                self.money.money += int(self.lst[res - 1][0] * self.lst[res - 1][1])
+                self.money + int(self.lst[res - 1][0] * self.lst[res - 1][1])
+                #self.money.money += int(self.lst[res - 1][0] * self.lst[res - 1][1])
                 self.money.save()
                 self.textInfo.insert(INSERT, '   ' + '\n')
                 self.textInfo.insert(INSERT, f'Победитель {self.lst[res - 1][2]}!' + '\n')
@@ -192,7 +195,8 @@ class GameWindow():
                 self.textInfo.see(END)
                 messagebox.showinfo('Эх','Вы ничего не выйграли!')
                 for i in self.lst:
-                    self.money.money -= int(i[0])
+                    self.money - int(i[0])
+                    #self.money.money -= int(i[0])
                     self.money.save()
                 
         elif res == None:
@@ -239,14 +243,12 @@ class GameWindow():
                     1: self.Horse01.win,
                     2: self.Horse02.win,
                     3: self.Horse03.win,
-                    4: self.Horse04.win
-                    }.items():
-
+                    4: self.Horse04.win}.items():
+                print(value)#Для себя
+                if value != None:  
                     print(value)#Для себя
-                    if value != None:  
-                        print(value)#Для себя
-                        self.win_round(key)
-                        break
+                    self.win_round(key)
+                    break
 
     def goMall(self):
         self.Kill()
@@ -254,14 +256,17 @@ class GameWindow():
         
     def goSettings(self):
         self.Kill()
+        HorseLabel.howMany(False)
         self.setting = Settings()
 
     def goMenu(self):
         self.Kill()
+        HorseLabel.howMany(False)
         self.menu = MenuGameWindow()
 
     def goGame(self):
         self.Kill()
+        HorseLabel.howMany(False)
         self.game = GameWindow()
 
     def Exit(self):
@@ -285,24 +290,41 @@ class MenuGameWindow(GameWindow):
         self.quitButton.place(x=155, y=520)
         self.mainTextLabel = Label(text="Ипподром", width=50, font='arial 20', bg='#FFB266')
         self.mainTextLabel.place(x = 110, y = 80)
-
-        
+       
     
-
 class Shop(GameWindow):
-  
     pass
+
 
 class Settings(GameWindow):
 
     def __init__(self):
         
-        self.lab = Label(text='Настройки', font='arial 30', bg="#4a898a")
+        self.th = Theme()
+        self.root.config(bg=self.th.bc)
+        self.lab = Label(text='Настройки', font='arial 30', bg=self.th.bc)
         self.lab.place(x=410, y=20)
-        self.lab_theme = Label(text="Тема", font="arial 15", bg="#4a898a")
+        self.lab_theme = Label(text="Тема", font="arial 15", bg=self.th.bc)
+        self.lab_theme.place(x=20, y=110)
 
         self.theme_var = StringVar()
-        self.theme = ttk.Combobox(self.root, state='readonly', values=self._Themes, textvariable=self.theme_var)
-        self.theme.place(x=20, y=100)
-        self.theme.set(self._standart_theme)
+        self.theme = ttk.Combobox(self.root, state='readonly', values=self.th.get_theme(), textvariable=self.theme_var, width=30)
+        self.theme.place(x=20, y=150)
+        self.theme.set(self.th.theme)
+        self.theme.bind("<<ComboboxSelected>>", self.theme_select)
     
+    def theme_select(self, *args) -> None:
+        self.theme_update(self.theme_var.get())
+        self.th = Theme()
+        self.root.config(bg=self.th.bc)
+        self.lab = Label(text='Настройки', font='arial 30', bg=self.th.bc)
+        self.lab.place(x=410, y=20)
+        self.lab_theme = Label(text="Тема", font="arial 15", bg=self.th.bc)
+        self.lab_theme.place(x=20, y=110)
+
+        print(self.th.bc)
+
+    def theme_update(self, var) -> None:
+        print(f'Выбрана тема {var}')
+        self.th.select_theme(var)
+        

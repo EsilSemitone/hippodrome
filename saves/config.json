@@ -1,0 +1,21 @@
+{
+  "theme": "Green",
+  "Dark": {
+    "bc": "#404040",
+    "button": "#999797",
+    "back_text": "#999797",
+    "bc_text_field": "#999797"
+  },
+  "Green": {
+    "bc": "#4a898a",
+    "button": "#37AA37",
+    "back_text": "#000000",
+    "bc_text_field": "#314545"
+  },
+  "White": {
+    "bc": "#948788",
+    "button": "#5e5354",
+    "back_text": "#948788",
+    "bc_text_field": "#5e5354"
+  }
+}

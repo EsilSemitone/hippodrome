@@ -1,8 +1,9 @@
-﻿from random import randint, choice, uniform, random
+﻿from random import randint, choice, uniform
 from tkinter import*
-from copy import copy
-from os import listdir
 from tkinter import messagebox
+from os import listdir
+
+from Theme import Theme
 
 class Horse():
     states = {
@@ -20,7 +21,7 @@ class Horse():
         self.posX = 20     
         self.posY = y
         #Копия координаты У чтобы ПОМНИТЬ где была изначально лошадь
-        self.SETAP_POS_X = copy(self.posX)
+        self.SETAP_POS_X = 20
         self.reverse = False
         self.play = True
         self.fastSpeed = False     
@@ -52,7 +53,7 @@ class Horse():
 
         #Сбросить координаты к дефолтным
     def setapHorse(self):
-        self.posX = copy(self.SETAP_POS_X)
+        self.posX = self.SETAP_POS_X
         self.factor = round(uniform(1, 12), 2)
         self.state = self.states[randint(1, 4)]
         self.reverse = False
@@ -64,9 +65,9 @@ class Horse():
     
     @classmethod
     def set_reset_Win(cls, state) -> bool:
-        '''Передаем True если нужно проверить _winner и в случае если он None поместить в него информацию и возвращает True иначе False
+        '''Передаем True если нужно проверить _winner и в случае если он None поместить в него информацию и возвратить True иначе False
            Передаем False если нужно сбросить значение _winner
-           Функция нужна для того чтобы опрежелить победителя и запомнить что он уже определен при следующем вызове функции
+           Функция нужна для того чтобы определить победителя и запомнить что он уже определен при следующем вызове функции
            возможно этого результата можно добиться более простым способом \-_-/'''
 
         if state is True:
@@ -77,14 +78,12 @@ class Horse():
         else:
             cls._winner = None
 
-
-
     def problemHorse(self, weather, time):
 
         if (randint(0, 250 +  weather + time + int(list(self.states.keys())[list(self.states.values()).index(self.state)]))) < 1:
             print("Внимание!")
 
-            if randint(1, 3) < 2:
+            if randint(1, 3) == 1:
                 self.fastSpeed = True
                 messagebox.showinfo("Внимание!", f"{self.name} рвется вперед! ")
             else:
@@ -94,7 +93,6 @@ class Horse():
                 else:
                     self.play = False
                     messagebox.showinfo("Внимание!", f"У {self.name} слетел наездник! ")
-
 
     def run(self, weather_speed, weather_problem, time_speed, time_problem) -> int:
 
@@ -156,9 +154,10 @@ class HorseLabel:
         4: 540
         }
 
-    def __init__(self):           
+    def __init__(self):
+        self.theme = Theme()
         self.horsesNames = listdir('textures\\horses\\used')
-        self.lab = Label(text=f"Ставка на лошадь №{self.amount}", background="#4a898a")
+        self.lab = Label(text=f"Ставка на лошадь №{self.amount}", background=self.theme.bc)
         self.lab.place(x=20, y=self.POS_LABELS[self.amount])
         self.name = self.horsesNames[self.amount - 1].removesuffix(".png")
         print(self.name)
@@ -168,15 +167,11 @@ class HorseLabel:
         self.horseCheck = Checkbutton(
             text=self.name, 
             variable=self.checkVar, 
-            bg="#4a898a", 
+            bg=self.theme.bc, 
             state="disabled"
             )
 
         self.horseCheck.place(x=150, y=self.POS_CHECK[self.amount])
-        #Удоли
-        print(self.amount)
-        print(self.POS_LABELS[self.amount])
-
         self.howMany(True)
             
     @classmethod
