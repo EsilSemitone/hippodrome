@@ -43,3 +43,4 @@ class Money():
     def error(self) -> None:
         messagebox.showerror("Внимание!", "У вас недостаточно денег!")
         quit()
+    #test
