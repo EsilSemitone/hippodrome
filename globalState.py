@@ -43,7 +43,7 @@ class Weather(object):
 
 
 class Time(Weather):
-
+    
     states = {
         1: "Утро",
         2: 'День',
@@ -76,14 +76,17 @@ class Time(Weather):
 
 
 class EventRate():
-
+    #Частота событий\проблем во время забега
     _events = ("Often", "Normal", "Rarely")
-    def __init__(self, ev_rate = _events[1]) -> None:
+
+    def __init__(self) -> None:
+        self.checkout()
+        
+    def checkout(self) -> None:
+        '''Чтение файла, если ошибка, то создадим))'''
         try:
             with open('saves\\event.json', 'r') as f:
-                json_file = js.load(f)
-                self.ev_rate = json_file['rate']
-                self.impact = json_file[self.ev_rate]
+                json_file = js.load(f)                
 
         except (FileNotFoundError, js.JSONDecodeError):
             with open('saves\\event.json', 'w') as f:
@@ -98,6 +101,18 @@ class EventRate():
                 json_file = js.load(f)
                 self.ev_rate = json_file['rate']
                 self.impact = json_file[self.ev_rate]
+
+    def write_new(self, value: str) -> None:
+        """Перезапись в файл и повторное чтение для перезаписи атрибутов"""
+        with open('saves\\event.json', 'r') as f:
+            json_file = js.load(f)
+            json_file['rate'] = value
+        with open('saves\\event.json', 'w') as f:
+            js.dump(json_file, f, indent=2)
+        self.checkout()
+
+    def get(self) -> tuple:
+        return self._events
 
 if __name__ == "__main__":
     with open('saves\\event.json', 'w') as f:

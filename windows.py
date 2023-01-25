@@ -5,7 +5,7 @@ from tkinter import messagebox
 
 from horses import Horse, HorseLabel
 from money import Money
-from globalState import Weather, Time
+from globalState import Weather, Time, EventRate
 from Theme import Theme
 
 class GameWindow():
@@ -23,7 +23,10 @@ class GameWindow():
     
 
     def __init__(self):
+        #Тема
         self.theme = Theme()
+        #Частота событий
+        self.eventRate = EventRate()
         self.root.config(bg=self.theme.bc)
         self.roadImage = PhotoImage(file="textures\\other\\road.png")
         self.road = Label(self.root, image=self.roadImage)
@@ -237,13 +240,10 @@ class GameWindow():
         #сначала проверка на то прибежали лошади к финишу или нет
         if any([i == 1 for i in self.horse_finish]):                
             self.root.after(5, self.Start) 
-            #Ниже я пока не понимаю как правильно написать, в плане чтобы выглядело красиво
+
         else:
-            for key, value in {
-                    1: self.Horse01.win,
-                    2: self.Horse02.win,
-                    3: self.Horse03.win,
-                    4: self.Horse04.win}.items():
+            for key, value in {1: self.Horse01.win, 2: self.Horse02.win, 3: self.Horse03.win, 4: self.Horse04.win}.items():
+
                 print(value)#Для себя
                 if value != None:  
                     print(value)#Для себя
@@ -301,14 +301,9 @@ class Settings(GameWindow):
     def __init__(self):
         
         self.th = Theme()
+        self.eventRate = EventRate()
         self.root.config(bg=self.th.bc)
-        self.lab = Label(text='Настройки', font='arial 30', bg=self.th.bc)
-        self.lab.place(x=410, y=20)
-        self.lab_theme = Label(text="Тема", font="arial 15", bg=self.th.bc)
-        self.lab_theme.place(x=20, y=110)
-
-        self.event_lab = Label(text='Частота событий', font='arial 15', bg=self.th.bc)
-        self.event_lab.place(x=20, y=200)
+        self.update_lab()
         self.event_var = StringVar
 
         self.theme_var = StringVar()
@@ -317,13 +312,14 @@ class Settings(GameWindow):
         self.theme.set(self.th.theme)
         self.theme.bind("<<ComboboxSelected>>", self.theme_select)
 
-        
+        self.event_rate_var = StringVar()
+        self.event_rate = ttk.Combobox(self.root, state='readonly', values=self.eventRate.get(), textvariable=self.event_rate_var, width=30)
+        self.event_rate.place(x=20, y=220)
+        self.event_rate.set(self.eventRate.ev_rate)
+        self.event_rate.bind("<<ComboboxSelected>>", self.event_rate_select)
 
-    
-    def theme_select(self, *args) -> None:
-        self.theme_update(self.theme_var.get())
-        self.th = Theme()
-        self.root.config(bg=self.th.bc)
+    def update_lab(self) -> None: 
+        
         self.lab = Label(text='Настройки', font='arial 30', bg=self.th.bc)
         self.lab.place(x=410, y=20)
         self.lab_theme = Label(text="Тема", font="arial 15", bg=self.th.bc)
@@ -331,6 +327,15 @@ class Settings(GameWindow):
         self.event_lab = Label(text='Частота событий', font='arial 15', bg=self.th.bc)
         self.event_lab.place(x=20, y=200)
 
+    def event_rate_select(self, *args):
+        self.eventRate.write_new(self.event_rate_var.get())
+    
+    def theme_select(self, *args) -> None:
+
+        self.theme_update(self.theme_var.get())
+        self.th = Theme()
+        self.root.config(bg=self.th.bc)
+        self.update_lab()
         
 
     def theme_update(self, var) -> None:

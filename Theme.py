@@ -53,7 +53,7 @@ class Theme():
                 json.dump(json_file, f, indent=2)
 
     def get_theme(self) -> tuple:
-        #Что-то забыл зачем его написал, может вспомню
+        #Для получение списка тем
         return self._themes
 
 
@@ -77,4 +77,3 @@ if __name__ == "__main__":
                 'back_text': '#948788',
                 'bc_text_field': '#5e5354'},
             }, f, indent=2)
-    #test

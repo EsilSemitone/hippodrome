@@ -125,7 +125,6 @@ class Horse():
             else:
                 self.posX += self.speed
              
-
         if self.posX < 952:
             if self.play == True and self.reverse == False: #Если бежит, возвращаем 1 Прибежала -> 0
                 self.moveHorse()
