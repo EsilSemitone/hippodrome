@@ -33,22 +33,31 @@ class Horse():
         #Частота событий
         self.event = EventRate()
 
-        self.horseImage = PhotoImage(file=photoFile) 
         #Скачивал рисунки я не с учебника, разрешение у них разное
+        self.horseImage = PhotoImage(file=photoFile) 
+       
         #Здесь я пытаюсь подогнать изображение до приемлемого
-        #Если не использовать отдельную переменную то этот алгоритм не работает :\
-        self.hgth = self.horseImage.height()
-
-        while self.hgth >= 80:
-            if self.hgth >= 500:
-                self.horseImage = self.horseImage.subsample(3, 3) #уменьшение в три раза по высоте и ширине
-                self.hgth = self.horseImage.height()              
-            else:
-                self.horseImage = self.horseImage.subsample(2, 2)
-                self.hgth = self.horseImage.height()
+        self.horseImage = self.littlePhoto(self.horseImage)
                 
         self.label = Label(image=self.horseImage)
         self.label.place(x=self.posX, y=self.posY)
+
+    def littlePhoto(self, photo):
+        '''Функция для уменьшения фотографий
+        Только на этом моменте пришло в голову создать для этого отдельную функцию :)'''
+        #Узнаем высоту изображения (Раз оно квадратное то высоты должно быть достаточно)
+        hght = photo.height()
+        while hght >= 80:
+            #Путем экспериметов заметил что так он более точно уменьшает изображение 
+            if hght >= 500:
+                #Уменьшаем изображение
+                photo = photo.subsample(3, 3)
+                hght = photo.height()
+            else:
+                photo = photo.subsample(2, 2)
+                hght = photo.height()
+
+        return photo
 
         #Установить лошадь по координатам
     def moveHorse(self):
@@ -83,7 +92,7 @@ class Horse():
 
     def problemHorse(self, weather, time):
 
-        if (randint(0, 250 +  weather + time + int(list(self.states.keys())[list(self.states.values()).index(self.state)])) + self.event.impact)  < 1:
+        if (randint(0, 250 +  weather + time + int(list(self.states.keys())[list(self.states.values()).index(self.state)]) + self.event.impact))  < 1:
             print("Внимание!")
 
             if randint(1, 3) == 1:
@@ -162,7 +171,6 @@ class HorseLabel:
         self.lab = Label(text=f"Ставка на лошадь №{self.amount}", background=self.theme.bc)
         self.lab.place(x=20, y=self.POS_LABELS[self.amount])
         self.name = self.horsesNames[self.amount - 1].removesuffix(".png")
-        print(self.name)
 
         self.checkVar = BooleanVar()
         self.checkVar.set(0)
@@ -178,9 +186,91 @@ class HorseLabel:
             
     @classmethod
     def howMany(cls, addReset: bool) -> None:
-        '''True увеличивает количество на 1, False сбрасывает к единице'''
+        '''
+        На сколько помню я создал этот метод для того чтобы отслеживать и контролировать количество экземпляров класса
+        True увеличивает количество на 1, False сбрасывает к единице
+        '''
         if addReset:
             cls.amount += 1
         else:
             cls.amount = 1
-   
+
+
+class ShopLabel():
+    '''Класс для размещения кнопок\текстур в окне магазина '''
+
+    POS_LABELS = {
+        1: 450,
+        2: 600,
+        3: 750
+        }
+    
+    count = 0
+
+    def __init__(self):
+        self.th = Theme()
+
+        #Если папка с конями пустая то выводим другую надпись
+        if self.how_much_files < 1:
+            self._no_products()
+
+        #Изначатьно написал как в примере ниже но вызывается исключение None, почему?
+        #assert self.how_much_files < 1, self._no_products()
+
+        if self.how_much_files > 0:        
+
+            self.add_count()
+
+            self.textureLab = Label(text='Купить новую лошадь!', bg=self.th.bc, font='arial 15')
+            self.textureLab.place(x=510, y=100)
+            self.mlab = Label(text='50000 рублей!', bg=self.th.bc, font='arial 12')
+            self.mlab.place(x=550, y=140)
+
+            self.sale_list = listdir('textures\\horses\\not used')
+
+            self.button_image = PhotoImage(file= 'textures\\horses\\not used\\' + self.sale_list[self.count - 1])
+            self.button_image = self.littlePhoto(self.button_image)
+
+            self.button = Button(image=self.button_image)
+            self.button.place(x=self.POS_LABELS[self.count], y=200)
+
+            self.horse_name = Label(text=self.sale_list[self.count - 1].removesuffix('.png'), bg=self.th.bc, font='arial 10')
+            self.horse_name.place(x=self.POS_LABELS[self.count], y=300)
+
+             #self.button2 = Button(image='textures\\horses\\not used\\' + self.sale_list[1])
+             #self.button2.place(x=510, y=300)
+
+    #Где-то тут я вспомнил что недавно узнал про свойства классов и решил их применить :}
+    @property
+    def how_much_files(self) -> int:
+        #Возвращает кол-во файлов в дтректории с текстурами коней
+        return len(listdir('textures\\horses\\not used'))
+
+    def _no_products(self) -> None:
+        #Вызывается в случае если не осталось файлов в папке "not used" 
+        self.textureLab = Label(text='Нет лошадей на продажу!!', bg=self.th.bc, font='arial 15')
+        self.textureLab.place(x=510, y=100)
+
+    @classmethod
+    def reset_count(cls) -> None:
+        #Сброс количества классов
+        cls.count = 0
+
+    @classmethod
+    def add_count(cls) -> None:
+        cls.count += 1
+
+    def _button(self, photo) -> None:
+        ...
+
+    def littlePhoto(self, photo):
+        #Та же самая функция уменьшения фотографий
+        hght = photo.height()
+        while hght >= 100:
+            if hght >= 500:
+                photo = photo.subsample(3, 3)
+                hght = photo.height()
+            else:
+                photo = photo.subsample(2, 2)
+                hght = photo.height()
+        return photo

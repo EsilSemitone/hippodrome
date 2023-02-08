@@ -1,13 +1,44 @@
-﻿from os import listdir
+﻿from email.mime import image
+from os import listdir, rename, replace
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 
-from horses import Horse, HorseLabel
+from horses import Horse, HorseLabel, ShopLabel
 from money import Money
 from globalState import Weather, Time, EventRate
 from Theme import Theme
 
+
+class WhereIsPlayer():
+    #Класс для того чтобы понимать где находится игрок > нужно для кнопки назад в настройках и магазине
+    places = ('Menu', 'Game')
+    place = None
+
+    @classmethod
+    def set_place(cls, pl: str) -> None:
+        cls.place = pl
+
+    @classmethod
+    def get_place(cls) -> str:
+        return cls.place
+
+
+class PlaceDecor():
+
+    def __init__(self, pl) -> None:
+        self.pl = pl
+
+    def __call__(self, func) -> None:
+
+        def wrap(s):
+            WhereIsPlayer.set_place(self.pl)
+            print('Место возврата -> ',WhereIsPlayer.get_place())
+            func(s)
+
+        return wrap
+
+    
 class GameWindow():
     
     root = Tk()
@@ -63,6 +94,8 @@ class GameWindow():
         self.lab3 = HorseLabel()
         self.lab4 = HorseLabel()
 
+        print('Текстуры прогрузились')
+
         self.bet01 = IntVar() 
         self.bet02 = IntVar() 
         self.bet03 = IntVar() 
@@ -112,12 +145,7 @@ class GameWindow():
         self.textInfo.insert(INSERT, f'{self.Horse04.name}, {self.Horse04.state} {self.Horse04.factor}:1' + '\n')
         #Смотреть в конец
         self.textInfo.see(END)
-
-    def Kill(self) -> None:
-        #функция очищающая окно, спасибо Илье, подсмотрел в головоломке!
-        for self.child in self.root.winfo_children():
-            self.child.destroy()
-      
+        
     def sumBets(self) -> list:
         '''Функция возвращающая сумму ставок'''
         return sum([
@@ -226,6 +254,7 @@ class GameWindow():
         self.Horse03.setapHorse()
         self.Horse04.setapHorse()
         self.setText()
+        self.betSelected()
 
 
     def Start(self) -> None:
@@ -244,29 +273,41 @@ class GameWindow():
         else:
             for key, value in {1: self.Horse01.win, 2: self.Horse02.win, 3: self.Horse03.win, 4: self.Horse04.win}.items():
 
-                print(value)#Для себя
                 if value != None:  
-                    print(value)#Для себя
                     self.win_round(key)
                     break
+    
+    def Kill(self) -> None:
+        #функция очищающая окно, спасибо Илье, подсмотрел в головоломке!
+        for self.child in self.root.winfo_children():
+            self.child.destroy()            
+    
 
+    def _KillDecor(func):
+        #Очищаю окно и сбрасываю атрибут отвечающий за количество отображаемых элементов
+        def wrap(self):
+            self.Kill()
+            HorseLabel.howMany(False)
+            ShopLabel.reset_count()
+            return func(self)
+        return wrap
+
+    @_KillDecor
     def goMall(self):
-        self.Kill()
         self.shop = Shop()
-        
+ 
+    @_KillDecor
     def goSettings(self):
-        self.Kill()
-        HorseLabel.howMany(False)
         self.setting = Settings()
 
+    @PlaceDecor('Menu')
+    @_KillDecor
     def goMenu(self):
-        self.Kill()
-        HorseLabel.howMany(False)
         self.menu = MenuGameWindow()
 
+    @PlaceDecor('Game')
+    @_KillDecor
     def goGame(self):
-        self.Kill()
-        HorseLabel.howMany(False)
         self.game = GameWindow()
 
     def Exit(self):
@@ -274,26 +315,98 @@ class GameWindow():
 
 
 class MenuGameWindow(GameWindow):
-    
+    #Начальное меню
     def __init__(self):
-        self.menuImage = PhotoImage(file='textures\\other\\менюшка.png')
 
-        #Здесь тоже подгоняю размер      
+        #Здесь тоже подгоняю размер 
+        self.menuImage = PhotoImage(file='textures\\other\\менюшка.png')         
         self.menuImage = self.menuImage.subsample(5, 4)
         self.menu = Label(image=self.menuImage)
         self.menu.place(x=0, y=0)
+
         self.gameButton = Button(text='Играть', font="arial 18", width=50, command=self.goGame, bg='#FFB266', activebackground='#FFCC99')
         self.gameButton.place(x=155, y=420)
         self.settingButton = Button(text="Настройки", font='arial 18', width=50, command=self.goSettings, bg='#FFB266', activebackground='#FFCC99')
         self.settingButton.place(x=155, y=470)
         self.quitButton = Button(text="Выход", font='arial 18', width=50, command=self.Exit, bg='#FFB266', activebackground='#FFCC99')
         self.quitButton.place(x=155, y=520)
+
         self.mainTextLabel = Label(text="Ипподром", width=50, font='arial 20', bg='#FFB266')
         self.mainTextLabel.place(x = 110, y = 80)
        
     
 class Shop(GameWindow):
-    pass
+    #Магазин
+    def __init__(self):
+        self.th = Theme()
+        self.money = Money("Рублей")
+        self.root.config(bg=self.th.bc)
+
+        self.nameLab = Label(text='Смена имени (10000 руб)', bg=self.th.bc, font='arial 15')
+        self.nameLab.place(x=60, y=100)
+
+        self.textureLab = Label(text='Купить новую лошадь!', bg=self.th.bc, font='arial 15')
+        self.textureLab.place(x=510, y=100)
+
+        self.selectBox()
+        self.packHorse()
+
+        self.back = self.goMenu if WhereIsPlayer.get_place() == "Menu" or WhereIsPlayer.get_place() == None else self.goGame
+        self.back_button = Button(text="Назад", font="arial 18", bg=self.th.button, width=15, command=self.back)
+        self.back_button.place(x=20, y=270)
+
+
+    def packHorse(self) -> None:
+        #Ставим кнопки покупол лошадей
+        self.one = ShopLabel()
+        self.two = ShopLabel()
+        self.three = ShopLabel()
+
+
+    def selectBox(self) -> None:
+        #Функция чтобы не повторять код
+        self.text_name = ttk.Entry()
+        self.text_name.place(x=60, y=140)
+        self.text_name.insert(0, "Алеша")
+
+        self.button_add_name = Button(text='Изменить', bg=self.th.button, font='arial 15', command=self._change_name)
+        self.button_add_name.place(x=60, y=170)
+
+        self.name = StringVar()
+        self.select_nameBox = ttk.Combobox(
+            self.root, 
+            state='readonly', 
+            values=[i.removesuffix('.png') for i in listdir('textures\\horses\\used')], 
+            textvariable=self.name, 
+            width=20)
+
+        self.select_nameBox.place(x=190, y=140)
+        self.select_nameBox.set([i.removesuffix('.png') for i in listdir('textures\\horses\\used')][0])
+
+
+    def _change_name(self) -> None:
+       #Функция работающая при нажатии на кнопкe смены имени выбраной лошади
+       
+        if self.name.get() == self.text_name.get():
+            messagebox.showinfo('Внимание!','Вы пытаетесь ввести тоже имя!')
+        elif len(self.text_name.get()) <= 1:
+            messagebox.showinfo('Внимание!','Пустое поле ввода или мало символов!')
+        else:
+
+            if self.money.get() > 1000:
+
+                ask = messagebox.askyesno('Внимание!', 'Вы действительно хотите сменить имя?')
+
+                if ask:
+                    self.money - 1000
+                    self.money.save()
+                    self.money.update_lab()
+                    rename('textures\\horses\\used\\' + self.name.get() + '.png', 'textures\\horses\\used\\' + self.text_name.get() + '.png' )
+                    messagebox.showinfo('внимание!', 'Вы успешно сменили имя {0} на {1}'.format(self.name.get(), self.text_name.get()))
+                    self.selectBox()
+            
+            else:
+                messagebox.showerror("Внимание!","У вас недостаточно денег")
 
 
 class Settings(GameWindow):
@@ -318,16 +431,27 @@ class Settings(GameWindow):
         self.event_rate.set(self.eventRate.ev_rate)
         self.event_rate.bind("<<ComboboxSelected>>", self.event_rate_select)
 
+        
+
     def update_lab(self) -> None: 
         
         self.lab = Label(text='Настройки', font='arial 30', bg=self.th.bc)
         self.lab.place(x=410, y=20)
+
         self.lab_theme = Label(text="Тема", font="arial 15", bg=self.th.bc)
         self.lab_theme.place(x=20, y=110)
+
         self.event_lab = Label(text='Частота событий', font='arial 15', bg=self.th.bc)
-        self.event_lab.place(x=20, y=200)
+        self.event_lab.place(x=20, y=190)
+
+        #Проверка на последнюю отметку местонахождения игрока
+        self.back = self.goMenu if WhereIsPlayer.get_place() != 'Game'  else self.goGame
+
+        self.back_button = Button(text="Назад", font="arial 18", bg=self.th.button, width=15, command=self.back)
+        self.back_button.place(x=20, y=270)
 
     def event_rate_select(self, *args):
+        #Перезаписываем json файл
         self.eventRate.write_new(self.event_rate_var.get())
     
     def theme_select(self, *args) -> None:

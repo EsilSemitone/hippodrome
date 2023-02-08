@@ -40,7 +40,13 @@ class Money():
         except:
             messagebox.showinfo('Ошибка', f'Не получается сохранить {self.name}')
 
+    def update_lab(self) -> None:
+        self.label = Label(text=f"Осталось {self.money} рублей", bg=self.th.bc, font="arial 16")
+        self.label.place(x=20, y=600)
+
     def error(self) -> None:
         messagebox.showerror("Внимание!", "У вас недостаточно денег!")
         quit()
-    #test
+
+    def get(self) -> int:
+        return self.money
