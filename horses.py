@@ -1,12 +1,15 @@
 ﻿from random import randint, choice, uniform
 from tkinter import*
 from tkinter import messagebox
-from os import listdir
+from os import listdir, replace
+
 
 from Theme import Theme
 from globalState import EventRate
+from money import Money
 
 class Horse():
+    #Состояния 
     states = {
         1 : "Отлично себя чувствует, рвется вперед.", 
         2 : "Все хорошо.", 
@@ -44,7 +47,7 @@ class Horse():
 
     def littlePhoto(self, photo):
         '''Функция для уменьшения фотографий
-        Только на этом моменте пришло в голову создать для этого отдельную функцию :)'''
+        Только под конец пришло в голову создать для этого отдельную функцию :)'''
         #Узнаем высоту изображения (Раз оно квадратное то высоты должно быть достаточно)
         hght = photo.height()
         while hght >= 80:
@@ -91,7 +94,7 @@ class Horse():
             cls._winner = None
 
     def problemHorse(self, weather, time):
-
+        #Герерируем проблемы
         if (randint(0, 250 +  weather + time + int(list(self.states.keys())[list(self.states.values()).index(self.state)]) + self.event.impact))  < 1:
             print("Внимание!")
 
@@ -107,7 +110,7 @@ class Horse():
                     messagebox.showinfo("Внимание!", f"У {self.name} слетел наездник! ")
 
     def run(self, weather_speed, weather_problem, time_speed, time_problem) -> int:
-
+        #По воле рандома и если лошадь не бежит назад то похоже будут проблемы
         if randint(0 , 100) < 20 and self.play and not self.reverse:
             self.problemHorse(weather_problem, time_problem)
  
@@ -135,20 +138,25 @@ class Horse():
                 self.posX += self.speed
              
         if self.posX < 952:
-            if self.play == True and self.reverse == False: #Если бежит, возвращаем 1 Прибежала -> 0
+            #Если бежит, возвращаем 1 
+            if self.play == True and self.reverse == False: 
                 self.moveHorse()
                 return 1
             else:
+                #Иначе возвращаем 0
                 if self.reverse:
                     self.moveHorse()
                 return 0
         else:
+            #Если прибежала то выставляем маркер что эта лошадь пришла к финишу 
             if self.set_reset_Win(True) == True:
                 self.win = True
             return 0
 
 
 class HorseLabel:
+    #Класс размещающий иконку лошади и тд
+
     #счетчик класов, в зависимости от того каким по счету был создан экземпляр его наполнение POS_CHECK\POS_LABELS\lab будет изменятся
     amount = 1
     POS_CHECK = {
@@ -167,9 +175,12 @@ class HorseLabel:
 
     def __init__(self):
         self.theme = Theme()
+        #Получаем список файлов-имен в папке с текстурами
         self.horsesNames = listdir('textures\\horses\\used')
+
         self.lab = Label(text=f"Ставка на лошадь №{self.amount}", background=self.theme.bc)
         self.lab.place(x=20, y=self.POS_LABELS[self.amount])
+        #Определяем имя
         self.name = self.horsesNames[self.amount - 1].removesuffix(".png")
 
         self.checkVar = BooleanVar()
@@ -188,6 +199,7 @@ class HorseLabel:
     def howMany(cls, addReset: bool) -> None:
         '''
         На сколько помню я создал этот метод для того чтобы отслеживать и контролировать количество экземпляров класса
+
         True увеличивает количество на 1, False сбрасывает к единице
         '''
         if addReset:
@@ -217,33 +229,38 @@ class ShopLabel():
         #Изначатьно написал как в примере ниже но вызывается исключение None, почему?
         #assert self.how_much_files < 1, self._no_products()
 
-        if self.how_much_files > 0:        
-
+        if self.how_much_files > 0: 
+            self.money = Money()
+            #Определяю что классов стало на 1 больше
             self.add_count()
 
             self.textureLab = Label(text='Купить новую лошадь!', bg=self.th.bc, font='arial 15')
             self.textureLab.place(x=510, y=100)
             self.mlab = Label(text='50000 рублей!', bg=self.th.bc, font='arial 12')
             self.mlab.place(x=550, y=140)
-
+            #Список лошадей для покупки
             self.sale_list = listdir('textures\\horses\\not used')
 
-            self.button_image = PhotoImage(file= 'textures\\horses\\not used\\' + self.sale_list[self.count - 1])
-            self.button_image = self.littlePhoto(self.button_image)
+            #Пробуем создать кнопку с изображением, если не получается не беда
+            try:
+                self.name = self.sale_list[self.count - 1]
 
-            self.button = Button(image=self.button_image)
-            self.button.place(x=self.POS_LABELS[self.count], y=200)
+                self.button_image = PhotoImage(file= 'textures\\horses\\not used\\' + self.sale_list[self.count - 1])
+                self.button_image = self.littlePhoto(self.button_image)
 
-            self.horse_name = Label(text=self.sale_list[self.count - 1].removesuffix('.png'), bg=self.th.bc, font='arial 10')
-            self.horse_name.place(x=self.POS_LABELS[self.count], y=300)
+                self.button = Button(image=self.button_image, command=self.buy_horse)
+                self.button.place(x=self.POS_LABELS[self.count], y=200)
 
-             #self.button2 = Button(image='textures\\horses\\not used\\' + self.sale_list[1])
-             #self.button2.place(x=510, y=300)
+                self.horse_name = Label(text=self.sale_list[self.count - 1].removesuffix('.png'), bg=self.th.bc, font='arial 10')
+                self.horse_name.place(x=self.POS_LABELS[self.count], y=300)
+
+            except:
+                pass
 
     #Где-то тут я вспомнил что недавно узнал про свойства классов и решил их применить :}
     @property
     def how_much_files(self) -> int:
-        #Возвращает кол-во файлов в дтректории с текстурами коней
+        #Возвращает кол-во файлов в директории с текстурами коней
         return len(listdir('textures\\horses\\not used'))
 
     def _no_products(self) -> None:
@@ -260,9 +277,6 @@ class ShopLabel():
     def add_count(cls) -> None:
         cls.count += 1
 
-    def _button(self, photo) -> None:
-        ...
-
     def littlePhoto(self, photo):
         #Та же самая функция уменьшения фотографий
         hght = photo.height()
@@ -274,3 +288,20 @@ class ShopLabel():
                 photo = photo.subsample(2, 2)
                 hght = photo.height()
         return photo
+
+    def buy_horse(self) -> None:
+        #Функция покупки
+        if self.money.get() < 50000:
+            messagebox.showerror('Внимание!','Недостаточно денег для покупки!')
+        else:
+            #Здесь мы уменьшаем мани, сохраняем, перемещаем текстуру в папку с используемыми лошадьми, а текстуру старой в папку reserve
+            self.money - 50000
+            self.money.save()          
+            replace('textures\\horses\\not used\\' + self.name, 'textures\\horses\\used\\' + self.name)
+            self.old_image = listdir('textures\\horses\\used')[1]       
+            replace('textures\\horses\\used\\' + self.old_image, 'textures\\horses\\reserve\\' + self.old_image)
+            messagebox.showinfo('Внимание!', f"Покупка прошла успешно, вы купили {self.name.removesuffix('.png')}")
+            self.money.update_lab()
+            #Удаляем кнопку
+            self.button.destroy()
+            self.horse_name.destroy()

@@ -1,8 +1,9 @@
 ﻿from random import randint, choice
 import json as js
-from textwrap import indent
+
 class Weather(object):
 
+    #Класс погоды
     states = {
         1 : "Ясно, на небе не тучки",
         2 : "Облачно",
@@ -22,6 +23,7 @@ class Weather(object):
         return self.state
 
     def impact_on_speed(self) -> list:
+        #Как погода будет влиять на скорость
         if self.state == self.states[1]:
             return [0.3, 0.4, 0.5]
         elif self.state == self.states[2]:
@@ -32,6 +34,7 @@ class Weather(object):
             return [-0.2, -0.3, -0.4]
 
     def impact_on_problem(self) -> int:
+        #Как погода будет влиять на проблемы
         if self.state == self.states[1]:
             return choice([10, 8, 5])
         elif self.state == self.states[2]:
@@ -43,7 +46,7 @@ class Weather(object):
 
 
 class Time(Weather):
-    
+    #Время суток
     states = {
         1: "Утро",
         2: 'День',
@@ -55,6 +58,7 @@ class Time(Weather):
         super().__init__()
 
     def impact_on_speed(self) -> list:
+        #Как будет влиять на скорость
         if self.state == self.states[1]:
             return [0.3, 0.4]
         elif self.state == self.states[2]:
@@ -65,6 +69,7 @@ class Time(Weather):
             return [-0.2, -0.3, -0.4]
 
     def impact_on_problem(self) -> int:
+        #Какбудет влиять на проблемы
         if self.state == self.states[1]:
             return choice([10, 8, 5])
         elif self.state == self.states[2]:

@@ -1,14 +1,16 @@
 import json
 
 class Theme():
-
+    #Список тем
     _themes = ('Green', 'Dark', 'White')
 
     def __init__(self, theme = _themes[0]):
 
+        #Пробуем открыть файл, если его нет, то создаем
         try:
             with open("saves\\config.json", 'r') as f:
                 json_file = json.load(f)
+                #Помещаем в переменные содержимое json
                 self.theme = json_file['theme']
                 self.button = json_file[self.theme]['button']
                 self.bc = json_file[self.theme]['bc']
@@ -35,6 +37,7 @@ class Theme():
                 'bc_text_field': '#5e5354'},
             }, f, indent=2)
         finally:
+            #По итогу все равно опять помещаем данные в переменные, вдруг файл не найдет
             with open("saves\\config.json", 'r') as f:
                 json_file = json.load(f)
                 self.theme = json_file['theme']

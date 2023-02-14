@@ -5,13 +5,13 @@ from Theme import Theme
 
 class Money():
 
-    def __init__(self, name):
+    def __init__(self, name="Рублей"):
         self.th = Theme()
         self.name = name
         self.money = self.load()
         #Проверка на кэш, если нет предупреждение
         assert self.money > 0 , self.error() 
-
+        #Это надпись в левом углу
         self.label = Label(text=f"Осталось {self.money} рублей", bg=self.th.bc, font="arial 16")
         self.label.place(x=20, y=600)
 
@@ -24,6 +24,7 @@ class Money():
         return self.money
 
     def load(self) -> int:
+        #Функция загрузки денег из файла
         try:
             with open("saves\\money.dat", "r") as f:
                 return int(f.read())
@@ -34,6 +35,7 @@ class Money():
                 return 10000
             
     def save(self) -> None:
+        #Сохранения
         try:
             with open("saves\\money.dat", 'w') as f:
                 f.write(str(self.money))
@@ -41,6 +43,7 @@ class Money():
             messagebox.showinfo('Ошибка', f'Не получается сохранить {self.name}')
 
     def update_lab(self) -> None:
+        #Обновить надпись
         self.label = Label(text=f"Осталось {self.money} рублей", bg=self.th.bc, font="arial 16")
         self.label.place(x=20, y=600)
 

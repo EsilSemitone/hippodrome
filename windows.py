@@ -1,5 +1,4 @@
-﻿from email.mime import image
-from os import listdir, rename, replace
+﻿from os import listdir, rename, replace
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -25,7 +24,7 @@ class WhereIsPlayer():
 
 
 class PlaceDecor():
-
+    #Декоратор для фиксирования местонахождения игрока
     def __init__(self, pl) -> None:
         self.pl = pl
 
@@ -40,7 +39,7 @@ class PlaceDecor():
 
     
 class GameWindow():
-    
+    '''Игровое меню'''
     root = Tk()
     WIDTH = 1024
     HEIGTH = 640
@@ -48,6 +47,7 @@ class GameWindow():
     POS_Y = root.winfo_screenheight() // 2 - HEIGTH // 2
     iconPhoto = "textures\\icon\\horse.png"
     root.title("Ипподром")
+    #Иконка
     root.iconphoto(True, PhotoImage(file=iconPhoto))
     root.geometry(f"{WIDTH}x{HEIGTH}+{POS_X}+{POS_Y}")
     root.resizable(False, False)
@@ -74,21 +74,21 @@ class GameWindow():
         #Кнопки
         self.startButton = Button(text='Старт', font="arial 18", width=30, state="disabled", bg=self.theme.button, fg='#FFFFFF', bd=3, command=self.Start)
         self.startButton.place(x=20, y=370)
-
+        #Старт
         self.settingButton = Button(text="Настройки", font="arial 18", width=15, bg=self.theme.button, fg='#FFFFFF', bd=3, command=self.goSettings)
         self.settingButton.place(x=510, y=370)
         self.settingImage = PhotoImage(file="textures\\buttons\\settings.png")
         self.settingImage = self.settingImage.subsample(12, 12)
         self.settingIco = Label(self.root, image=self.settingImage)
         self.settingIco.place(x=455, y=370)
-
+        #Кнопка магазина
         self.shopButton = Button(text="Магазин", font="arial 18", width=15, bg=self.theme.button, fg='#FFFFFF', bd=3, command=self.goMall)
         self.shopButton.place(x=795, y=370)
         self.shopImage = PhotoImage(file="textures\\buttons\\shop1.png")
         self.shopImage = self.shopImage.subsample(12, 12)
         self.shopIco = Label(self.root, image=self.shopImage)
         self.shopIco.place(x=740, y=370)
-        
+        #Размещаются лошади
         self.lab1 = HorseLabel()
         self.lab2 = HorseLabel()
         self.lab3 = HorseLabel()
@@ -201,25 +201,25 @@ class GameWindow():
         return [self.mon // 100 * 10 * i for i in range(0, 11)]
 
     def winner(self, res) -> None:
-
+        #Получаю ставки, коэффицентыб и имена 
         self.lst = [
             [self.bet01.get(), self.Horse01.factor, self.Horse01.name], 
             [self.bet02.get(), self.Horse02.factor, self.Horse02.name], 
             [self.bet03.get(), self.Horse03.factor, self.Horse03.name], 
             [self.bet04.get(), self.Horse04.factor, self.Horse04.name]
             ]
-
-        if res != None:
+        #Если у нас есть победитель ->
+        if res != 0:
+            #Если на лошадь была ставка, плюсуем мани и выводим сообщение
             if self.lst[res - 1][0] > 0:
                 self.money + int(self.lst[res - 1][0] * self.lst[res - 1][1])
-                #self.money.money += int(self.lst[res - 1][0] * self.lst[res - 1][1])
                 self.money.save()
                 self.textInfo.insert(INSERT, '   ' + '\n')
                 self.textInfo.insert(INSERT, f'Победитель {self.lst[res - 1][2]}!' + '\n')
                 self.textInfo.insert(INSERT, '   ')
                 self.textInfo.see(END)
                 messagebox.showinfo('Поздравляю!',f'Вы выйграли {int(self.lst[res - 1][0] * self.lst[res - 1][1])} {self.money.name}!')    
-                
+            #А если не была то минусуем ))))    
             else:           
                 self.textInfo.insert(INSERT, '   ' + '\n')
                 self.textInfo.insert(INSERT, f'Победитель {self.lst[res - 1][2]}!' + '\n')
@@ -227,10 +227,10 @@ class GameWindow():
                 messagebox.showinfo('Эх','Вы ничего не выйграли!')
                 for i in self.lst:
                     self.money - int(i[0])
-                    #self.money.money -= int(i[0])
                     self.money.save()
                 
-        elif res == None:
+        else:
+            #На случай если нет победителя
             messagebox.showinfo('Эх','Ни одна лошадь не пришла к финишу!')
 
             for i in self.lst:
@@ -242,11 +242,10 @@ class GameWindow():
         self.box03.current(0)
         self.box04.current(0)
 
-    def win_round(self, res):      
-        
+    def win_round(self, res) -> None:      
+        #Вызываем метод с победителем
         self.winner(res)
-
-
+        #Обновляем 
         self.weather = Weather()
         self.time_set = Time()
         self.Horse01.setapHorse()
@@ -259,6 +258,7 @@ class GameWindow():
 
     def Start(self) -> None:
 
+        #Запускаем лошадей и передаем погоду ивремя суток 
         self.horse_finish =[
             self.Horse01.run(self.weather.impact_on_speed(), self.weather.impact_on_problem(), self.time_set.impact_on_speed(), self.time_set.impact_on_problem()),
             self.Horse02.run(self.weather.impact_on_speed(), self.weather.impact_on_problem(), self.time_set.impact_on_speed(), self.time_set.impact_on_problem()),
@@ -266,16 +266,20 @@ class GameWindow():
             self.Horse04.run(self.weather.impact_on_speed(), self.weather.impact_on_problem(), self.time_set.impact_on_speed(), self.time_set.impact_on_problem())
         ]
 
-        #сначала проверка на то прибежали лошади к финишу или нет
+        #Если хоть одна лошадь бежит к финишу, повторяем
         if any([i == 1 for i in self.horse_finish]):                
             self.root.after(5, self.Start) 
 
+        #Если не бежит то смотрим какая прибежала
         else:
             for key, value in {1: self.Horse01.win, 2: self.Horse02.win, 3: self.Horse03.win, 4: self.Horse04.win}.items():
-
+                #Если какая-нибудь прибежала, то передаем ее номер
                 if value != None:  
                     self.win_round(key)
                     break
+            else:
+                self.win_round(0)
+                
     
     def Kill(self) -> None:
         #функция очищающая окно, спасибо Илье, подсмотрел в головоломке!
@@ -284,7 +288,7 @@ class GameWindow():
     
 
     def _KillDecor(func):
-        #Очищаю окно и сбрасываю атрибут отвечающий за количество отображаемых элементов
+        #Очищаю окно и сбрасываю атрибуты отвечающие за количество отображаемых элементов
         def wrap(self):
             self.Kill()
             HorseLabel.howMany(False)
@@ -318,7 +322,7 @@ class MenuGameWindow(GameWindow):
     #Начальное меню
     def __init__(self):
 
-        #Здесь тоже подгоняю размер 
+        #Здесь тоже подгоняю размер изображений
         self.menuImage = PhotoImage(file='textures\\other\\менюшка.png')         
         self.menuImage = self.menuImage.subsample(5, 4)
         self.menu = Label(image=self.menuImage)
@@ -338,6 +342,7 @@ class MenuGameWindow(GameWindow):
 class Shop(GameWindow):
     #Магазин
     def __init__(self):
+        #Тема
         self.th = Theme()
         self.money = Money("Рублей")
         self.root.config(bg=self.th.bc)
@@ -347,17 +352,19 @@ class Shop(GameWindow):
 
         self.textureLab = Label(text='Купить новую лошадь!', bg=self.th.bc, font='arial 15')
         self.textureLab.place(x=510, y=100)
-
+        #Все что отвечает за смену имени
         self.selectBox()
+        #Все что отвечает за смену лошади
         self.packHorse()
-
+        #Определяем куда должен вернуться игрок если нажмет кнопку 'Назад'
         self.back = self.goMenu if WhereIsPlayer.get_place() == "Menu" or WhereIsPlayer.get_place() == None else self.goGame
+        #Сама кнопка
         self.back_button = Button(text="Назад", font="arial 18", bg=self.th.button, width=15, command=self.back)
         self.back_button.place(x=20, y=270)
 
 
     def packHorse(self) -> None:
-        #Ставим кнопки покупол лошадей
+        #Ставим кнопки покупок лошадей
         self.one = ShopLabel()
         self.two = ShopLabel()
         self.three = ShopLabel()
@@ -365,13 +372,15 @@ class Shop(GameWindow):
 
     def selectBox(self) -> None:
         #Функция чтобы не повторять код
+
+        #Поле ввода нового имени
         self.text_name = ttk.Entry()
         self.text_name.place(x=60, y=140)
         self.text_name.insert(0, "Алеша")
-
+        #Кнопка 'Изменить имя'
         self.button_add_name = Button(text='Изменить', bg=self.th.button, font='arial 15', command=self._change_name)
         self.button_add_name.place(x=60, y=170)
-
+        #Выбор лошади которой хотим сенить имя
         self.name = StringVar()
         self.select_nameBox = ttk.Combobox(
             self.root, 
@@ -381,16 +390,21 @@ class Shop(GameWindow):
             width=20)
 
         self.select_nameBox.place(x=190, y=140)
+        #Вставить в поле имя первой лошади в списке
         self.select_nameBox.set([i.removesuffix('.png') for i in listdir('textures\\horses\\used')][0])
 
 
     def _change_name(self) -> None:
        #Функция работающая при нажатии на кнопкe смены имени выбраной лошади
-       
+        #Если имена в полях равны предупреждаем
         if self.name.get() == self.text_name.get():
             messagebox.showinfo('Внимание!','Вы пытаетесь ввести тоже имя!')
+
+        #Не нашел способа понять что находится в TextVar если в нее ничего не помещать, по этому изловчился как ниже
         elif len(self.text_name.get()) <= 1:
             messagebox.showinfo('Внимание!','Пустое поле ввода или мало символов!')
+ 
+        #Если все ок, то меняем и списываем мани
         else:
 
             if self.money.get() > 1000:
@@ -410,31 +424,94 @@ class Shop(GameWindow):
 
 
 class Settings(GameWindow):
-
+    '''Настройки'''
     def __init__(self):
-        
+        #Прогружаем тему, частоту событий
         self.th = Theme()
         self.eventRate = EventRate()
         self.root.config(bg=self.th.bc)
+        #Все что связано с выбором лошади
         self.update_lab()
-        self.event_var = StringVar
-
+    
+        #Окошко выбора темы
         self.theme_var = StringVar()
         self.theme = ttk.Combobox(self.root, state='readonly', values=self.th.get_theme(), textvariable=self.theme_var, width=30)
         self.theme.place(x=20, y=150)
         self.theme.set(self.th.theme)
         self.theme.bind("<<ComboboxSelected>>", self.theme_select)
 
+        #Окошко выбора частоты событий
+        self.event_var = StringVar()
         self.event_rate_var = StringVar()
         self.event_rate = ttk.Combobox(self.root, state='readonly', values=self.eventRate.get(), textvariable=self.event_rate_var, width=30)
         self.event_rate.place(x=20, y=220)
         self.event_rate.set(self.eventRate.ev_rate)
         self.event_rate.bind("<<ComboboxSelected>>", self.event_rate_select)
 
-        
+
+        self.choice_horse_text = Label(text= "Смена лошади",font='Arial 15', bg=self.th.bc)
+        self.choice_horse_text.place(x=500, y=110)
+
+        #Здесь выбираем лошадь которую хотим заменить
+        self.update_choice()
+
+
+    def update_choice(self) -> None:
+        #Все что связано с настройками выбора лошадей вынес в отдельный метод чтобы не повторять код
+        #Окошко с выбором лошадей которые участвуют в забеге
+        self.old_choice_horse_var = StringVar()
+        self.old_choice_horse = ttk.Combobox(
+            self.root, state='readonly',
+            values=[i.removesuffix('.png') for i in listdir('textures\\horses\\used')],
+            textvariable=self.old_choice_horse_var,
+            width=30
+            )
+        self.old_choice_horse.place(x=500, y=150)
+        self.old_choice_horse.set([i.removesuffix('.png') for i in listdir('textures\\horses\\used')][0])
+    
+        self.new_choice_text = Label(text='Поменяем на ->', font='arial 10', bg=self.th.bc)
+        self.new_choice_text.place(x=500, y=170)
+        #Окошко купленных лошадей
+        self.new_choice_horse_var = StringVar()
+        self.new_choice_horse = ttk.Combobox(self.root,
+                                            state='readonly',
+                                            values=[i.removesuffix('.png') for i in listdir('textures\\horses\\reserve')],
+                                            textvariable=self.new_choice_horse_var,
+                                            width=30
+                                            )
+        self.new_choice_horse.place(x=500, y=195)
+        #Пробуем поместить первую лошадь в списке
+        try:
+            self.new_choice_horse.set([i.removesuffix('.png') for i in listdir('textures\\horses\\reserve')][0])
+        except:
+            self.new_choice_horse.set('Нет доступных лошадей')
+
+        self.change_button = Button(text='Изменить', font='arial 15', bg=self.th.button, command=self.change_horse)
+        self.change_button.place(x=500, y=220)
+
+    def change_horse(self) -> None:
+        #Функция вызывается при нажатии на кнопку 'изменить'
+        if self.new_choice_horse_var.get() == 'Нет доступных лошадей':
+            messagebox.showinfo('Внимание','Нет доступных лошадей')
+        else:
+            used_path = 'textures\\horses\\used\\'
+            reserve_path = 'textures\\horses\\reserve\\'
+            replace(used_path + self.old_choice_horse_var.get() + '.png', reserve_path + self.old_choice_horse_var.get() + '.png')
+            replace(reserve_path + self.new_choice_horse_var.get() + '.png', used_path + self.new_choice_horse_var.get() + '.png' )
+            messagebox.showinfo('Внимание','Замена прошла успешно!')
+            self.update_choice()
 
     def update_lab(self) -> None: 
+        #Фунция для обновления заднего фона при смене темы и чтобы меньше повторять код
+        self.choice_horse_text = Label(text= "Смена лошади",font='Arial 15', bg=self.th.bc)
+        self.choice_horse_text.place(x=500, y=110)
+
+        self.new_choice_text = Label(text='Поменяем на ->', font='arial 10', bg=self.th.bc)
+        self.new_choice_text.place(x=500, y=170)
         
+        self.change_button = Button(text='Изменить', font='arial 15', bg=self.th.bc, command=self.change_horse)
+        self.change_button.place(x=500, y=220)
+
         self.lab = Label(text='Настройки', font='arial 30', bg=self.th.bc)
         self.lab.place(x=410, y=20)
 
@@ -449,13 +526,16 @@ class Settings(GameWindow):
 
         self.back_button = Button(text="Назад", font="arial 18", bg=self.th.button, width=15, command=self.back)
         self.back_button.place(x=20, y=270)
+  
+        self.change_button = Button(text='Изменить', font='arial 15', bg=self.th.button, command=self.change_horse)
+        self.change_button.place(x=500, y=220)
 
     def event_rate_select(self, *args):
         #Перезаписываем json файл
         self.eventRate.write_new(self.event_rate_var.get())
     
     def theme_select(self, *args) -> None:
-
+        #работает когда меняем тему
         self.theme_update(self.theme_var.get())
         self.th = Theme()
         self.root.config(bg=self.th.bc)
@@ -463,6 +543,7 @@ class Settings(GameWindow):
         
 
     def theme_update(self, var) -> None:
+        #Меняем тему
         print(f'Выбрана тема {var}')
         self.th.select_theme(var)
         
